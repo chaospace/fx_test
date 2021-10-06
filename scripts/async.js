@@ -15,6 +15,11 @@ async function call() {
 
 call();
 
+/**
+  promise 에러처리
+  resolve, reject가 아닌 throw Error를 이용해도 
+  호출하는 곳에서 catch로 잡을 수 있음.
+*/
 function errorCall() {
   return new Promise((_, reject) => {
     setTimeout(() => {
@@ -25,7 +30,7 @@ function errorCall() {
           }
         }
       };
-      throw new Error(JSON.stringify(errorObj));
+      reject(new Error(JSON.stringify(errorObj)));
     }, 1000);
   });
 }
@@ -36,21 +41,8 @@ async function errorFire() {
   console.log("response", res.message);
 }
 
-//errorFire();
+errorFire();
 
-let value = { key: "vvv" };
-try {
-  value = JSON.parse(value);
-} catch (e) {}
-console.log("v", value);
-
-function restParams(a, ..._) {
-  console.log(a, _);
-}
-
-//restParams("c", { name: "a" });
-//restParams("c", 2, 3, 4);
-restParams("c");
 Function.prototype.memoize = function () {
   let fn = this;
   // Function에 prototype을 이용하므로 fn.length를 이용해 인수를 체크할 수 있음.
@@ -70,10 +62,3 @@ function momoizeTest(a, b) {
 }
 
 momoizeTest.memoize();
-
-function argmerge(arg1, arg2) {
-  arg1 = arg1.concat(arg2);
-  console.log("arg1", arg1);
-}
-
-argmerge([1, 2], [3, 4, 5]);
