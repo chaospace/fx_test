@@ -15,5 +15,6 @@
 ## 함수형 주요용어 정리
 
 - [커링](./summary/curry.md)
+- [메모화](./summary/memoize.md)
 
 - [제너레이터](./summary/generator.md)
