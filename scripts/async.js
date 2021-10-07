@@ -42,23 +42,3 @@ async function errorFire() {
 }
 
 errorFire();
-
-Function.prototype.memoize = function () {
-  let fn = this;
-  // Function에 prototype을 이용하므로 fn.length를 이용해 인수를 체크할 수 있음.
-  // this와 arguments는 서로 다름
-  console.log("memoized-fn", fn, fn.length);
-  console.log("arguments", arguments.length, arguments);
-  if (fn.length == 0 || fn.length > 1) {
-    return fn;
-  }
-  return function () {
-    return "ok";
-  };
-};
-
-function momoizeTest(a, b) {
-  console.log("test-func", a, b);
-}
-
-momoizeTest.memoize();
