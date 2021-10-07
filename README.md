@@ -16,5 +16,5 @@
 
 - [커링](./summary/curry.md)
 - [메모화](./summary/memoize.md)
-- [꼬재호출](./summary/tco.md)
+- [꼬리호출](./summary/tco.md)
 - [제너레이터](./summary/generator.md)
