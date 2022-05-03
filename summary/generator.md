@@ -35,7 +35,7 @@ console.log(generator); // [object Generator]
  next():{value:any, done:Boolean}
 ```
 
-> **yield** '생상하다', '산출하다'의 뜻을 가짐
+> **yield** '생산하다', '산출하다'의 뜻을 가짐
 
 제너레이터를 만들고 산출값을 받는 예시
 
@@ -90,7 +90,7 @@ function* generatorSequence2() {
   yield 3;
 }
 for (let value of generatorSequence2()) {
-  console.log(value); // 1, 2
+  console.log(value); // 1, 2, 3
 }
 ```
 
@@ -168,7 +168,7 @@ function* generatePasswordCode() {
 
 let str = "";
 for (let code of generatePasswordCode()) {
-  str + String.fromCharCode(code);
+  str += String.fromCharCode(code);
 }
 console.log(str);
 ```
@@ -216,6 +216,7 @@ function* genwithError() {
 }
 let errorGen = genwithError();
 let errorQuestion = errorGen.next().value;
+console.log("errorQuestion", errorQuestion);
 errorGen.throw(new Error("에러 발생"));
 ```
 
