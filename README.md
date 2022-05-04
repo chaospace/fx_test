@@ -18,4 +18,5 @@
 - [메모화](./summary/memoize.md)
 - [꼬리호출](./summary/tco.md)
 - [제너레이터](./summary/generator.md)
-- [모나드] (./summary/monad.md)
+- [모나드](./summary/monad.md)
+- [Maybe함수버전](./summary/maybe_fx.md)
