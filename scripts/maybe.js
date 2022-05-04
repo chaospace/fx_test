@@ -35,6 +35,10 @@ class Just extends Maybe {
     return this._value;
   }
 
+  get isJust() {
+    return true;
+  }
+
   map(f) {
     return Maybe.fromNullable(f(this._value));
   }
@@ -78,6 +82,10 @@ class Nothing extends Maybe {
 
   chain(f) {
     return this;
+  }
+
+  get isNothing() {
+    return true;
   }
 
   toString() {
