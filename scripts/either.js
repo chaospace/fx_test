@@ -13,12 +13,20 @@ class Either {
     return new Left(value);
   }
 
+  get value() {
+    return this._value;
+  }
+
   get isRight() {
     return false;
   }
 
   get isLeft() {
     return false;
+  }
+
+  map(fn) {
+    return this.isLeft ? this : Either.right(fn(this._value));
   }
 
   toString() {
@@ -31,10 +39,6 @@ class Right extends Either {
     return true;
   }
 
-  map(fn) {
-    return Either.right(fn(this._value));
-  }
-
   toString() {
     return `Right(${super.toString()})`;
   }
@@ -44,10 +48,6 @@ class Right extends Either {
 class Left extends Either {
   get isLeft() {
     return true;
-  }
-
-  map(fn) {
-    return this;
   }
 
   toString() {
