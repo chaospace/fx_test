@@ -126,6 +126,8 @@ const map = curry(function* (fn, iter) {
   }
 });
 
+const mapC = curry((fn, iter) => takeAll(map(fn, iter)));
+
 const filter = curry(function* (fn, iter) {
   iter = toIter(iter);
   let cur;
@@ -167,6 +169,29 @@ const add = (a, b) => {
   return a + b;
 };
 
+//호출은 막지않고 계속 카운트를 증가시키면 콜
+//응답이 오고 카운트가 일치하면 콜백호출...
+const debounce = curry((fn, time) => {
+  let i = 0;
+  return (...args) => delay(time, ++i).then((id) => id === i && fn(...args));
+});
+
+const blockUntil = curry((fn, predicate) => {
+  //블럭 체크 블리언 선언
+  let block = false;
+  return (...args) => {
+    if (block) return;
+    block = true;
+    const res = fn(...args);
+    go1(predicate(res), () => (block = false)).finally(() => (block = false));
+    return res;
+  };
+});
+
+const throttle = curry((fn, time) => {
+  return blockUntil(fn, () => delay(time, null));
+});
+
 // go([1, 2, 3, 4, 5], reduce(add), log);
 
 // const pipeF = pipe(add, log);
@@ -191,14 +216,6 @@ const add = (a, b) => {
     log("최종", r);
   }
 ); */
-
-const revealPromise = (acc) => {
-  acc = isPromise(acc) ? acc.then(toIter) : toIter(acc);
-  if (isPromise(acc)) return acc.then(revealPromise);
-  return acc;
-};
-
-go([1, 2, 3], (a) => Promise.resolve(a), revealPromise, log);
 
 // pipe
 // Promise.resolve([1,2,3])
@@ -368,6 +385,7 @@ const uniqueBy = curry((fn, iter) => {
 });
 
 const identity = (a) => a;
+const not = (a) => !a;
 const unique = (a) => uniqueBy(identity, a);
 const uniqueL = (a) => uniqueByL(identity, a);
 
@@ -383,6 +401,172 @@ const append = curry((a, iter) => {
   return takeAll(appendL(a, iter));
 });
 
+const prependL = curry(function* (a, iter) {
+  yield a;
+  yield* iter;
+});
+
+const prepend = curry((a, iter) => {
+  return takeAll(prependL(a, iter));
+});
+
 log("unique", unique([1, 2, 3, 4, 1, 2, 3, 4, 5]));
 // log("entries", entries({ a: 1, b: 2, c: 3, d: 1, e: 2 }));
 log("append", append("c", ["a", "d", "e"]));
+
+const curry2 = (f) => {
+  return (a, ..._) => {
+    return _.length > 1
+      ? f(a, ..._)
+      : _.length === 1
+      ? (...__) => f(a, _[0], ...__)
+      : (b, ..._) => (_.length ? f(a, b, ..._) : (..._) => f(a, b, ..._));
+  };
+};
+
+const curryN = (n, fn) => {
+  return function recur(a, ..._) {
+    return _.length >= n ? fn(a, ..._) : (...__) => recur(a, ..._, ...__);
+  };
+};
+
+/**
+ * insert
+ */
+const insertL = curry2(function* (index, item, iter) {
+  //추가 인덱스가 보다 작으면 제일 앞에 추가
+  if (index < 0) return yield* prependL(item, iter);
+  let i = 0;
+  for (const el of iter) {
+    if (i++ === index) yield item;
+    yield el;
+  }
+  //인덱스가 현재 목록보다 뒤면 마지막에 추가
+  if (i <= index) yield item;
+});
+
+const insert = curry2((index, item, iter) => {
+  return takeAll(insertL(index, item, iter));
+});
+log("insert", insert(4, 1, [0, 2, 3]));
+
+/** 속성을 그룹으로 묶어서 리턴 */
+const groupBy = curry((fn, iter) => {
+  return reduce(
+    (group, a) => {
+      return go1(fn(a), (k) => ((group[k] || (group[k] = [])).push(a), group));
+    },
+    {},
+    iter
+  );
+});
+
+const maxBy = curry((fn, iter) => {
+  return reduce((a, b) => (fn(a) >= fn(b) ? a : b), iter);
+});
+
+const max = curry((fn, iter) => {
+  return maxBy(fn, iter);
+});
+
+const minBy = curry((fn, iter) => {
+  return reduce((a, b) => (fn(a) <= fn(b) ? a : b), iter);
+});
+
+const min = curry((fn, iter) => minBy(fn, iter));
+
+const avgBy = curry((fn, iter) => {
+  let s = 0;
+  return go1(
+    reduce(
+      (a, b) => {
+        s += 1;
+        return fn(a) + fn(b);
+      },
+      0,
+      iter
+    ),
+    (b) => b / s
+  );
+});
+
+const avg = curry((fn, iter) => avgBy(fn, iter));
+
+const juxt = (...fns) => {
+  return (...args) =>
+    mapC((f) => {
+      return f(...args);
+    }, fns);
+};
+
+log(
+  "max",
+  max((a) => a, [1, 5, 2, 3, 10])
+);
+log(
+  "groupBy",
+  groupBy((a) => (a % 2 ? "odd" : "even"), [1, 2, 3, 4])
+);
+const calculate = juxt(min(identity), max(identity), avg(identity));
+const numberGen = function* () {
+  yield 1;
+  yield 2;
+  yield 3;
+  yield 4;
+  yield 5;
+};
+log("jux", calculate([1, 2, 3, 4]));
+
+/**
+ * array-reduce에 기능은?
+ * 현재, 다음 값을 전달받아 배열을 연속적으로 연결해 처리 할 수 있다.
+ * reduce를 이용해 배열에 제공되는 모든 기능을 처리할 수 있다.
+ */
+// log("not-undefined", not(undefined));
+// log("not-undefined", not(null));
+
+/**
+ * async에 리턴값은 항상 promise로 하고
+ * 내부 promise를 이용해 딜레이 적용한다.
+ */
+const delay = curry(async (time, a) => {
+  await new Promise((resolve) => setTimeout(resolve, time));
+  return a;
+});
+
+const hasOwnProperty = (k, obj) =>
+  obj && Object.prototype.hasOwnProperty.call(obj, k);
+
+const has = curry((k, obj) => !!hasOwnProperty(k, obj));
+
+//없는 속성은 추가하고 있으면 그냥 반환
+const setter = (obj, [k, v]) => {
+  return has(k, obj) || (obj[k] = v), obj;
+};
+
+async function delayTest() {
+  log(
+    "delay-return",
+    delay(100, 10).then((a) => log("delay-then", a))
+  );
+}
+delayTest();
+
+const eachCall = (fns, ...args) => {
+  return isIterable(fns)
+    ? mapC((f) => f(...args), fns)
+    : object(mapEntriesL((f) => f(...args), entriesL(fns)));
+};
+
+async function testEachCall() {
+  const res = await eachCall({
+    a: (_) => Promise.resolve(1),
+    b: (_) => Promise.resolve(2),
+  });
+
+  log("each-call-object", res);
+
+  const res2 = await eachCall([(a) => a + 1, (a) => a + 2], 10);
+  log("each-call-res-with-args", res2);
+}
+testEachCall();
